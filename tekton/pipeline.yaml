@@ -1,0 +1,50 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: backstage-quarkus-test-pipeline
+  namespace: test-quarkus
+  labels:
+    type: pipeline
+spec:
+  params:
+    - name: source-repo
+      description: source repo that contains the application code
+      type: string
+      default: https://github.com/stefan-bergstein/backstage-quarkus-test
+    - name: source-branch
+      description: source branch to build from
+      default: main
+      type: string
+    - name: output-image
+      description: reference of the image that will get created
+      default: quay.io/image-registry.openshift-image-registry.svc:5000/backstage-quarkus-test
+      type: string
+  tasks:
+    - name: git-clone
+      params:
+        - name: url
+          value: $(params.source-repo)
+        - name: revision
+          value: $(params.source-branch)
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: source-folder
+    - name: s2i-java
+      params:
+        - name: VERSION
+          value: latest
+        - name: IMAGE
+          value: $(params.output-image)
+      runAfter:
+        - git-clone
+      taskRef:
+        kind: ClusterTask
+        name: s2i-java
+      workspaces:
+        - name: source
+          workspace: source-folder
+  workspaces:
+    - name: source-folder

@@ -1,0 +1,31 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: backstage-quarkus-test-pipeline-run-init
+  namespace: test-quarkus
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+  labels:
+    tekton.dev/pipeline: backstage-quarkus-test-pipeline
+    type: pipeline
+spec:
+  params:
+    - name: source-repo
+      value: 'https://github.com/stefan-bergstein/backstage-quarkus-test.git'
+    - name: source-branch
+      value: main
+    - name: output-image
+      value: quay.io/image-registry.openshift-image-registry.svc:5000/backstage-quarkus-test
+  pipelineRef:
+    name: backstage-quarkus-test-pipeline
+  serviceAccountName: pipeline
+  workspaces:
+    - name: source-folder
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi

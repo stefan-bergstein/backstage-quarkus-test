@@ -1,0 +1,19 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: webhook-backstage-quarkus-test-el
+  namespace: test-quarkus
+  labels:
+    app.kubernetes.io/managed-by: EventListener
+    app.kubernetes.io/part-of: Triggers
+    eventlistener: backstage-quarkus-test-el
+spec:
+  to:
+    kind: Service
+    name: el-backstage-quarkus-test-el
+    weight: 100
+  port:
+    targetPort: http-listener
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
